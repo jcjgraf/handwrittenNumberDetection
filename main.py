@@ -3,6 +3,8 @@
 from tkinter import *		# GUI
 import io 					# Get Canvas Content
 from PIL import Image
+import PIL
+import numpy
 
 import tensorflow as tf 	# Neural network
 
@@ -33,7 +35,7 @@ class Window(Frame):
 
 	def paint(self, event):
 		x, y = (event.x), (event.y)
-		r = 6
+		r = 15
 		self.canvas.create_oval(x - r, y - r, x + r, y + r, fill="black")
 
 	def addBottons(self):
@@ -61,52 +63,65 @@ class Menu:
 
 	def drawMenu():
 
-		while 1:
-			subprocess.run( "clear")
-			print("--------------")
-			print("     Menu     ")
-			print("--------------")
-			print("1. Draw a numbe and feed it to the neural network.")
-			print("2. Train neural network")
-			print("9. Exit")
-			print("--------------")
+		subprocess.run( "clear")
+		print("--------------")
+		print("     Menu     ")
+		print("--------------")
+		print("1. Draw a numbe and feed it to the neural network.")
+		print("2. Train neural network")
+		print("9. Exit")
+		print("--------------")
 
-			try:
-				i = int(input("Please select an option from above\n"))
+		i = int(input("Please select an option from above\n"))
 
-				if i == 1:
-					# Input menu
+		if i == 1:
+			# Input menu
 
-					if getInputImage():
-						# Got image
-						# TODO: Feed to cnn
-						break
+			if getInputImage():
+				global image
+				# break
 
-					else:
-						# Did not get image
-						Menu.drawMenu()
+				neuralNetwork = NeuralNetwork()
 
-				elif i == 2:
-					# Train cnn
-					break
+				neuralNetwork.createNetwork()
 
-				elif i == 9:
-					# Exit
-					sys.exit()
+				data = neuralNetwork.imageToMnist(image)
 
-				else:
-					print("Invalid input. Please select one of the options")
+				with tf.Session() as sess:
 
-			except SystemExit:
-				print("Exiting")
+					sess.run(tf.global_variables_initializer())
+
+
+					# neuralNetwork.createNetwork()
+
+					result = neuralNetwork.feedToNetwork(neuralNetwork.x)
+
+					# sess.run(neuralNetwork.out, feed_dict={neuralNetwork.x: []})
+
+					foo = sess.run(neuralNetwork.output, feed_dict={neuralNetwork.x: [data]})
+
+					print("out", foo)
+
 				sys.exit()
 
-			except:
-				print("Invalid input. Please enter a number")
+			else:
+				# Did not get image
+				Menu.drawMenu()
+
+		elif i == 2:
+			# Train cnn
+			pass
+
+		elif i == 9:
+			# Exit
+			sys.exit()
+
 
 class NeuralNetwork:
 
 	def createNetwork(self):
+
+		print("Creating neural network")
 
 		# Nomber of nodes in a specific layer
 		numNodesImp = 784
@@ -118,12 +133,12 @@ class NeuralNetwork:
 		numNodesOut = 10
 
 		# Import node
-		x = tf.placeholder("float")
+		self.x = tf.placeholder("float")
 
 		self.hl1 = {"weights": tf.Variable(tf.random_normal([numNodesImp, numNodesHl1])),
 				"biases": tf.Variable(tf.random_normal([numNodesHl1]))}
 
-		self.self.hl2 = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesHl2])),
+		self.hl2 = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesHl2])),
 				"biases": tf.Variable(tf.random_normal([numNodesHl2]))}
 
 		self.hl3 = {"weights": tf.Variable(tf.random_normal([numNodesHl2, numNodesHl3])),
@@ -132,7 +147,7 @@ class NeuralNetwork:
 		self.out = {"weights": tf.Variable(tf.random_normal([numNodesHl3, numNodesOut])),
 		"biases": tf.Variable(tf.random_normal([numNodesOut]))}
 
-	def feedToNetwork(data):
+	def feedToNetwork(self, data):
 
 		l1 = tf.add(tf.matmul(data, self.hl1["weights"]), self.hl1["biases"])
 		l1 = tf.nn.relu(l1)
@@ -143,12 +158,31 @@ class NeuralNetwork:
 		l3 = tf.add(tf.matmul(l2, self.hl3["weights"]), self.hl3["biases"])
 		l3 = tf.nn.relu(l3)
 
-		output = tf.add(tf.matmul(l3, self.out["weights"]), self.out["biases"])
-		output = tf.nn.relu(output)
+		self.output = tf.add(tf.matmul(l3, self.out["weights"]), self.out["biases"])
+		self.output = tf.nn.relu(self.output)
 
-		return output
+		# return output
 
-		def trainNetwork()
+	# def trainNetwork():
+
+	def imageToMnist(self, image):
+		"""
+			Loads the image, downscales it to 28x28px, converts it to a numpy rgb array, converts it to a grayscale double flattened array
+		"""
+		side = (28, 28)
+		image = image
+		image.thumbnail(side, PIL.Image.ANTIALIAS)
+
+		rbgImageArray = numpy.asarray(image)
+		imageArray = []
+
+		# TODO check if flattened correctly
+		for row in rbgImageArray:
+			for column in row:
+				imageArray.append(float(column[0] / 255))
+
+		# print(imageArray)
+		return imageArray
 
 def getInputImage():
 	"""
@@ -168,15 +202,13 @@ def getInputImage():
 
 	if image:
 		print("Got image")
-		image.show()
-		return true
+		return True
 
 	else:
 		# print("Did not get an image")
-		return fale
+		return False
 
 if __name__ == '__main__':
 
 	Menu.drawMenu()
-	# getInputImage()
 	
