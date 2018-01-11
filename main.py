@@ -4,6 +4,8 @@ from tkinter import *		# GUI
 import io 					# Get Canvas Content
 from PIL import Image
 
+import tensorflow as tf 	# Neural network
+
 import sys					# Exiting
 import subprocess			# Clear Terminal
 
@@ -101,6 +103,52 @@ class Menu:
 
 			except:
 				print("Invalid input. Please enter a number")
+
+class NeuralNetwork:
+
+	def createNetwork(self):
+
+		# Nomber of nodes in a specific layer
+		numNodesImp = 784
+
+		numNodesHl1 = 500
+		numNodesHl2 = 500
+		numNodesHl3 = 500
+
+		numNodesOut = 10
+
+		# Import node
+		x = tf.placeholder("float")
+
+		self.hl1 = {"weights": tf.Variable(tf.random_normal([numNodesImp, numNodesHl1])),
+				"biases": tf.Variable(tf.random_normal([numNodesHl1]))}
+
+		self.self.hl2 = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesHl2])),
+				"biases": tf.Variable(tf.random_normal([numNodesHl2]))}
+
+		self.hl3 = {"weights": tf.Variable(tf.random_normal([numNodesHl2, numNodesHl3])),
+				"biases": tf.Variable(tf.random_normal([numNodesHl3]))}
+
+		self.out = {"weights": tf.Variable(tf.random_normal([numNodesHl3, numNodesOut])),
+		"biases": tf.Variable(tf.random_normal([numNodesOut]))}
+
+	def feedToNetwork(data):
+
+		l1 = tf.add(tf.matmul(data, self.hl1["weights"]), self.hl1["biases"])
+		l1 = tf.nn.relu(l1)
+
+		l2 = tf.add(tf.matmul(l1, self.hl2["weights"]), self.hl2["biases"])
+		l2 = tf.nn.relu(l2)
+
+		l3 = tf.add(tf.matmul(l2, self.hl3["weights"]), self.hl3["biases"])
+		l3 = tf.nn.relu(l3)
+
+		output = tf.add(tf.matmul(l3, self.out["weights"]), self.out["biases"])
+		output = tf.nn.relu(output)
+
+		return output
+
+		def trainNetwork()
 
 def getInputImage():
 	"""
