@@ -1,10 +1,14 @@
 #! /usr/bin/env python3
 
-from tkinter import *
-import io
+from tkinter import *		# GUI
+import io 					# Get Canvas Content
 from PIL import Image
 
+import sys					# Exiting
+import subprocess			# Clear Terminal
+
 root = None
+image = None
 
 class Window(Frame):
 
@@ -41,19 +45,70 @@ class Window(Frame):
 		self.canvas.delete("all")
 
 	def getImage(self):
-		global root
+		"""
+			Convertes the canvascontent to a postscript and then to an image. 
+		"""
+		global root, image
 
 		postscript = self.canvas.postscript(colormode="gray")
 		image = Image.open(io.BytesIO(postscript.encode('utf-8')))
 
-		image.show()
-
 		root.destroy()
 
+class Menu:
 
-	
+	def drawMenu():
+
+		while 1:
+			subprocess.run( "clear")
+			print("--------------")
+			print("     Menu     ")
+			print("--------------")
+			print("1. Draw a numbe and feed it to the neural network.")
+			print("2. Train neural network")
+			print("9. Exit")
+			print("--------------")
+
+			try:
+				i = int(input("Please select an option from above\n"))
+
+				if i == 1:
+					# Input menu
+
+					if getInputImage():
+						# Got image
+						# TODO: Feed to cnn
+						break
+
+					else:
+						# Did not get image
+						Menu.drawMenu()
+
+				elif i == 2:
+					# Train cnn
+					break
+
+				elif i == 9:
+					# Exit
+					sys.exit()
+
+				else:
+					print("Invalid input. Please select one of the options")
+
+			except SystemExit:
+				print("Exiting")
+				sys.exit()
+
+			except:
+				print("Invalid input. Please enter a number")
+
 def getInputImage():
-	global root
+	"""
+		Opens the drawing board and returns a boolean depending on whether we got an image or not
+	"""
+	global root, image
+
+	image = None # Set to nil so that we can later check whether we received an image or not
 
 	root = Tk()
 
@@ -63,10 +118,17 @@ def getInputImage():
 	app = Window(root)
 	root.mainloop()
 
-	print("Called")
+	if image:
+		print("Got image")
+		image.show()
+		return true
 
+	else:
+		# print("Did not get an image")
+		return fale
 
 if __name__ == '__main__':
 
-	getInputImage()
+	Menu.drawMenu()
+	# getInputImage()
 	
