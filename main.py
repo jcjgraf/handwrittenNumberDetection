@@ -4,7 +4,7 @@ from tkinter import *		# GUI
 import io 					# Get Canvas Content
 from PIL import Image
 import PIL
-import numpy
+# import numpy
 
 import tensorflow as tf 	# Neural network
 
@@ -12,7 +12,7 @@ import sys					# Exiting
 import subprocess			# Clear Terminal
 
 
-import neuralNetwork
+from neuralNetwork import NeuralNetwork
 
 root = None
 image = None
@@ -100,8 +100,6 @@ class Menu:
 					foo = sess.run(neuralNetwork.output, feed_dict={neuralNetwork.x: [data]})
 
 					print("out", foo)
-					print("result", result)
-					print("resrun", sess.run(result))
 
 				Menu.drawMenu()
 
@@ -119,9 +117,6 @@ class Menu:
 		elif i == 9:
 			# Exit
 			sys.exit()
-
-
-
 
 def getInputImage():
 	"""

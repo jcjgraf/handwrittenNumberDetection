@@ -1,3 +1,12 @@
+#! /usr/bin/env python3
+
+import tensorflow as tf
+import io
+import PIL
+from PIL import Image
+import numpy
+
+
 class NeuralNetwork:
 
 	def createNetwork(self):
@@ -42,7 +51,6 @@ class NeuralNetwork:
 		# l3 = tf.nn.relu(l3)
 
 		self.output = tf.add(tf.matmul(l1, self.out["weights"]), self.out["biases"])
-		self.output = tf.nn.relu(self.output)
 
 		return self.output
 
@@ -57,7 +65,7 @@ class NeuralNetwork:
 		y = tf.placeholder("float")
 		batch_size = 100
 
-		currentOut = neuralNetwork.feedToNetwork(neuralNetwork.x)
+		currentOut = self.feedToNetwork(self.x)
 
 		cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=currentOut, labels=y))
 		optimizer = tf.train.AdamOptimizer().minimize(cost)
@@ -74,15 +82,16 @@ class NeuralNetwork:
 				for _ in range(int(mnist.train.num_examples / batchSize)):
 					epochX, epochY = mnist.train.next_batch(batchSize)
 
-					_, c = sess.run([optimizer, cost], feed_dict={neuralNetwork.x: epochX, y: epochY})
-					print("cost", c)
+					print(sess.run(currentOut, feed_dict={self.x: epochX}))
+
+					_, c = sess.run([optimizer, cost], feed_dict={self.x: epochX, y: epochY})
 					epochLoss += c
 
 				print("Epoch", epoch, "completed out of", numEpochs, "loss:", epochLoss)
 
 			correct = tf.equal(tf.argmax(currentOut, 1), tf.argmax(y, 1))
 			accuracy = tf.reduce_mean(tf.cast(correct, "float"))
-			print("Accuracy:", accuracy.eval({neuralNetwork.x: mnist.test.images, y: mnist.test.labels}))
+			print("Accuracy:", accuracy.eval({self.x: mnist.test.images, y: mnist.test.labels}))
 
 	def imageToMnist(self, image):
 		"""
