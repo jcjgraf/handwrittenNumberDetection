@@ -11,13 +11,21 @@ import tensorflow as tf 	# Neural network
 import sys					# Exiting
 import subprocess			# Clear Terminal
 
+import os
+import os.path
+
 
 from neuralNetwork import NeuralNetwork
+import settings
 
 root = None
 image = None
 
 neuralNetwork = None
+
+settings.init()
+
+saveFilePath = settings.saveFilePath
 
 class Window(Frame):
 
@@ -67,6 +75,7 @@ class Window(Frame):
 class Menu:
 
 	def drawMenu():
+		global image, neuralNetwork, saveFilePath
 
 		# subprocess.run( "clear")
 		print("--------------")
@@ -83,17 +92,19 @@ class Menu:
 			# Input menu
 
 			if getInputImage():
-				global image, neuralNetwork
 
-				# neuralNetwork = NeuralNetwork()
+				if (os.path.exists(saveFilePath) == False):
+					print("There is no network model at", saveFilePath)
 
-				neuralNetwork.createNetwork()
+					neuralNetwork.createNetwork()
 
 				data = neuralNetwork.imageToMnist(image)
 
 				with tf.Session() as sess:
 
 					sess.run(tf.global_variables_initializer())
+
+					neuralNetwork.saver.restore(sess, saveFilePath)
 
 					result = neuralNetwork.feedToNetwork(neuralNetwork.x)
 
@@ -109,7 +120,11 @@ class Menu:
 
 		elif i == 2:
 			# Train cnn
-			neuralNetwork.createNetwork()
+			if (os.path.exists(saveFilePath) == False):
+				print("There is no network model at", saveFilePath)
+
+				neuralNetwork.createNetwork()
+
 			neuralNetwork.trainNetwork()
 
 			Menu.drawMenu()

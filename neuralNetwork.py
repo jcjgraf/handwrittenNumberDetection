@@ -5,7 +5,9 @@ import io
 import PIL
 from PIL import Image
 import numpy
+import os
 
+import settings
 
 class NeuralNetwork:
 
@@ -28,14 +30,17 @@ class NeuralNetwork:
 		self.hl1 = {"weights": tf.Variable(tf.random_normal([numNodesImp, numNodesHl1])),
 				"biases": tf.Variable(tf.random_normal([numNodesHl1]))}
 
-		# self.hl2 = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesHl2])),
-		# 		"biases": tf.Variable(tf.random_normal([numNodesHl2]))}
+		self.hl2 = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesHl2])),
+				"biases": tf.Variable(tf.random_normal([numNodesHl2]))}
 
-		# self.hl3 = {"weights": tf.Variable(tf.random_normal([numNodesHl2, numNodesHl3])),
-		# 		"biases": tf.Variable(tf.random_normal([numNodesHl3]))}
+		self.hl3 = {"weights": tf.Variable(tf.random_normal([numNodesHl2, numNodesHl3])),
+				"biases": tf.Variable(tf.random_normal([numNodesHl3]))}
 
-		self.out = {"weights": tf.Variable(tf.random_normal([numNodesHl1, numNodesOut])),
+		self.out = {"weights": tf.Variable(tf.random_normal([numNodesHl3, numNodesOut])),
 		"biases": tf.Variable(tf.random_normal([numNodesOut]))}
+
+		# self.saver = tf.train.Saver({"hl1W": self.hl1["weights"], "hl1B": self.hl1["biases"], "hl2W": self.hl2["weights"], "hl2B": self.hl2["biases"], "hl3W": self.hl3["weights"], "hl3B": self.hl3["biases"]})
+		self.saver = tf.train.Saver()
 
 	def feedToNetwork(self, data):
 
@@ -44,13 +49,13 @@ class NeuralNetwork:
 		l1 = tf.add(tf.matmul(data, self.hl1["weights"]), self.hl1["biases"])
 		l1 = tf.nn.relu(l1)
 
-		# l2 = tf.add(tf.matmul(l1, self.hl2["weights"]), self.hl2["biases"])
-		# l2 = tf.nn.relu(l2)
+		l2 = tf.add(tf.matmul(l1, self.hl2["weights"]), self.hl2["biases"])
+		l2 = tf.nn.relu(l2)
 
-		# l3 = tf.add(tf.matmul(l2, self.hl3["weights"]), self.hl3["biases"])
-		# l3 = tf.nn.relu(l3)
+		l3 = tf.add(tf.matmul(l2, self.hl3["weights"]), self.hl3["biases"])
+		l3 = tf.nn.relu(l3)
 
-		self.output = tf.add(tf.matmul(l1, self.out["weights"]), self.out["biases"])
+		self.output = tf.add(tf.matmul(l3, self.out["weights"]), self.out["biases"])
 
 		return self.output
 
@@ -73,25 +78,35 @@ class NeuralNetwork:
 		numEpochs = 10
 		batchSize = 100
 
+		self.saver = tf.train.Saver()
+
+
 		with tf.Session() as sess:
 
 			sess.run(tf.global_variables_initializer())
 
-			for epoch in range(numEpochs):
-				epochLoss = 0
-				for _ in range(int(mnist.train.num_examples / batchSize)):
-					epochX, epochY = mnist.train.next_batch(batchSize)
+		# 	for epoch in range(numEpochs):
+		# 		epochLoss = 0
+		# 		for _ in range(int(mnist.train.num_examples / batchSize)):
+		# 			epochX, epochY = mnist.train.next_batch(batchSize)
 
-					print(sess.run(currentOut, feed_dict={self.x: epochX}))
+		# 			_, c = sess.run([optimizer, cost], feed_dict={self.x: epochX, y: epochY})
+		# 			epochLoss += c
 
-					_, c = sess.run([optimizer, cost], feed_dict={self.x: epochX, y: epochY})
-					epochLoss += c
+		# 		print("Epoch", epoch, "completed out of", numEpochs, "loss:", epochLoss)
 
-				print("Epoch", epoch, "completed out of", numEpochs, "loss:", epochLoss)
+		# 	correct = tf.equal(tf.argmax(currentOut, 1), tf.argmax(y, 1))
+		# 	accuracy = tf.reduce_mean(tf.cast(correct, "float"))
+		# 	print("Accuracy:", accuracy.eval({self.x: mnist.test.images, y: mnist.test.labels}))
 
-			correct = tf.equal(tf.argmax(currentOut, 1), tf.argmax(y, 1))
-			accuracy = tf.reduce_mean(tf.cast(correct, "float"))
-			print("Accuracy:", accuracy.eval({self.x: mnist.test.images, y: mnist.test.labels}))
+			# Save cnn
+			print("Saveing network")
+
+			if not os.path.exists(settings.saveFilePath):
+				os.makedirs(settings.saveFilePath)
+
+			settings.saveFilePath = self.saver.save(sess, settings.saveFilePath)
+			print("Saved model to ", settings.saveFilePath)
 
 	def imageToMnist(self, image):
 		"""
