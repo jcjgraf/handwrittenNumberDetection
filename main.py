@@ -4,7 +4,6 @@ from tkinter import *		# GUI
 import io 					# Get Canvas Content
 from PIL import Image
 import PIL
-# import numpy
 
 import tensorflow as tf 	# Neural network
 
@@ -24,7 +23,6 @@ image = None
 neuralNetwork = None
 
 settings.init()
-
 saveFilePath = settings.saveFilePath
 
 class Window(Frame):
@@ -63,12 +61,13 @@ class Window(Frame):
 
 	def getImage(self):
 		"""
-			Convertes the canvascontent to a postscript and then to an image. 
+			Convertes the canvascontent to a postscript and then to an image. Called when btn pressed
 		"""
 		global root, image
 
 		postscript = self.canvas.postscript(colormode="gray")
 		image = Image.open(io.BytesIO(postscript.encode('utf-8')))
+
 
 		root.destroy()
 
@@ -93,24 +92,27 @@ class Menu:
 
 			if getInputImage():
 
-				if (os.path.exists(saveFilePath) == False):
-					print("There is no network model at", saveFilePath)
-
-					neuralNetwork.createNetwork()
-
 				data = neuralNetwork.imageToMnist(image)
+
+				neuralNetwork.saver = tf.train.Saver({"hl1W": neuralNetwork.hl1["weights"], "hl1B": neuralNetwork.hl1["biases"], "hl2W": neuralNetwork.hl2["weights"], "hl2B": neuralNetwork.hl2["biases"], "hl3W": neuralNetwork.hl3["weights"], "hl3B": neuralNetwork.hl3["biases"], "outw": neuralNetwork.out["weights"], "outb": neuralNetwork.out["biases"]})
 
 				with tf.Session() as sess:
 
-					sess.run(tf.global_variables_initializer())
+					if (os.path.exists(saveFilePath) == False):
+						print("There is no network model at %s. Initializing new one" % saveFilePath)
+						sess.run(tf.global_variables_initializer())
 
-					neuralNetwork.saver.restore(sess, saveFilePath)
+					else:
+						print("There is a network, will load it")
+						neuralNetwork.saver.restore(sess, saveFilePath)
+						print("missin", sess.run(tf.report_uninitialized_variables()))
 
-					result = neuralNetwork.feedToNetwork(neuralNetwork.x)
+					results = sess.run(neuralNetwork.feedToNetwork([data]))[0]
 
-					foo = sess.run(neuralNetwork.output, feed_dict={neuralNetwork.x: [data]})
+					index, value = max(enumerate(results), key=operator.itemgetter(1))
 
-					print("out", foo)
+					print("results", results)
+					print("It seems to be a", index)
 
 				Menu.drawMenu()
 
@@ -120,10 +122,6 @@ class Menu:
 
 		elif i == 2:
 			# Train cnn
-			if (os.path.exists(saveFilePath) == False):
-				print("There is no network model at", saveFilePath)
-
-				neuralNetwork.createNetwork()
 
 			neuralNetwork.trainNetwork()
 
@@ -154,7 +152,6 @@ def getInputImage():
 		return True
 
 	else:
-		# print("Did not get an image")
 		return False
 
 if __name__ == '__main__':
