@@ -13,6 +13,8 @@ import subprocess			# Clear Terminal
 import os
 import os.path
 
+import operator
+
 
 from neuralNetwork import NeuralNetwork
 import settings
@@ -111,7 +113,7 @@ class Menu:
 
 					index, value = max(enumerate(results), key=operator.itemgetter(1))
 
-					print("results", results)
+					# print("results", results)
 					print("It seems to be a", index)
 
 				Menu.drawMenu()
