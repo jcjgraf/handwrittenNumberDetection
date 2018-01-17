@@ -12,7 +12,7 @@ I made this project in orde to get into machine-learning.
 2. Install the following dependencies:
   * tensorflow
   * Pillow
-  * num
+  * numpy
 
 ## Usage
 1. Run the script with python3, eg. "python3 main.py"
