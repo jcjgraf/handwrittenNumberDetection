@@ -1,6 +1,5 @@
 # Number Detection
-
-### Detect numbers drawn on a canvas with a neural network
+### Detect numbers drawn on a canvas with a neural network
 
 ---
 
